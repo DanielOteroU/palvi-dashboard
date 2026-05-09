@@ -32,7 +32,7 @@ import {
       }))
   
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <div className="bg-white rounded-2xl border border-gray-200/60 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.04)]">
         <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-4">{label}</h3>
         <ResponsiveContainer width="100%" height={200}>
           <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>

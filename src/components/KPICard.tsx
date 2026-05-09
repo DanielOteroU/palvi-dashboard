@@ -37,7 +37,7 @@ export default function KPICard({ label, value, unit, trend, direction }: KPICar
       : `${Math.round(value)}`
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col gap-3 shadow-sm">
+    <div className="bg-white rounded-2xl border border-gray-200/60 p-5 flex flex-col gap-3 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_6px_0_rgba(0,0,0,0.06),0_8px_24px_-4px_rgba(0,0,0,0.06)] transition-shadow">
       <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">{label}</span>
       <div className="flex items-end gap-2">
         <span className="text-3xl font-semibold text-gray-900">{displayValue}</span>

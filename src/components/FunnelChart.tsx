@@ -10,7 +10,7 @@ export default function FunnelChart({ days }: FunnelChartProps) {
   const max = data[0].value
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+    <div className="bg-white rounded-2xl border border-gray-200/60 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.04)]">
       <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-5">
         Funnel de conversión — promedio 30d
       </h3>
