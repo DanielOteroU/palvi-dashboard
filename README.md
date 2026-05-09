@@ -1,73 +1,42 @@
-# React + TypeScript + Vite
+# Palvi Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Reporte ejecutivo de métricas B2B SaaS. Construido con React + TypeScript.
 
-Currently, two official plugins are available:
+## Cómo correrlo localmente
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Abrí http://localhost:5173 en el navegador.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+El archivo `public/metrics.json` ya está incluido en el repo.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Decisiones técnicas
+
+**React + TypeScript + Vite** — stack base requerido. Vite por velocidad de setup y HMR instantáneo.
+
+**Recharts** — librería de charts construida sobre React. Elegida por su API declarativa y buena integración con TypeScript. Alternativa considerada: Chart.js, descartada por requerir manejo manual del DOM.
+
+**Tailwind CSS** — utilidades inline para iterar rápido en UI sin saltar entre archivos CSS. Permite mantener el estilo cerca del componente.
+
+**Sin estado global (Redux/Zustand)** — la app tiene un único estado relevante: el dataset seleccionado. `useState` en `App.tsx` es suficiente y proporcional al problema.
+
+**Sin backend** — el JSON se carga via `fetch('/metrics.json')` desde `public/`. Correcto para este scope: los datos son estáticos y no hay autenticación.
+
+**Win rate calculado como suma acumulada** — `sum(deals_won) / sum(deals_won + deals_lost)` sobre una ventana de 30 días, no promedio de ratios diarios. Esto evita distorsiones en días con pocos deals.
+
+**Tendencia comparando ventanas de 30 días** — se compara el promedio de los últimos 30 días contra los 30 anteriores. Un delta > 3% se considera tendencia. El campo `direction` del dataset determina si esa tendencia es buena o mala.
+
+**Nulls manejados explícitamente** — métricas como `avg_response_time_min` pueden ser null (días sin leads). Las funciones de promedio filtran nulls antes de calcular.
+
+## Segunda iteración
+
+**Servicio de análisis en Python** — mover el cálculo de tendencias, detección de anomalías y proyecciones a un microservicio FastAPI. Python tiene mejor ecosistema para estadística (pandas, statsmodels). El frontend consumiría una API REST en lugar de procesar el JSON directamente.
+
+**Alertas inteligentes** — detectar automáticamente qué métrica empeoró más en las últimas 2 semanas y mostrarla destacada al abrir el dashboard. El Jefe de Ventas no debería tener que buscar el problema.
+
+**Selector de período** — permitir comparar semana actual vs semana anterior, o mes vs mes anterior, en lugar de ventanas fijas de 7/30/90 días.
+
+**Tests** — cubrir las funciones de `dataUtils.ts` con Jest. Son funciones puras, fáciles de testear y críticas para la correctitud del reporte.
