@@ -5,6 +5,7 @@ import DatasetSelector from './components/DatasetSelector'
 import KPICard from './components/KPICard'
 import TrendChart from './components/TrendChart'
 import FunnelChart from './components/FunnelChart'
+import FocusAlert from './components/FocusAlert'
 
 export default function App() {
   const [data, setData] = useState<MetricsFile | null>(null)
@@ -40,7 +41,8 @@ export default function App() {
           </div>
           <DatasetSelector selected={selected} onChange={setSelected} />
         </div>
-
+        
+        <FocusAlert dataset={dataset} />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <KPICard {...kpis.winRate} />
           <KPICard {...kpis.responseTime} />

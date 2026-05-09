@@ -14,7 +14,7 @@ export default function FunnelChart({ days }: FunnelChartProps) {
       <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-5">
         Funnel de conversión — promedio 30d
       </h3>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4 pb-2">
         {data.map((item, i) => {
           const prev = i > 0 ? data[i - 1].value : null
           const convRate = prev && prev > 0
@@ -22,7 +22,7 @@ export default function FunnelChart({ days }: FunnelChartProps) {
             : null
 
           return (
-            <div key={item.name} className="flex flex-col gap-1">
+            <div key={item.name} className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-gray-700">{item.name}</span>
                 <div className="flex items-center gap-3">
@@ -34,11 +34,11 @@ export default function FunnelChart({ days }: FunnelChartProps) {
                   </span>
                 </div>
               </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
-                    width: `${(item.value / max) * 100}%`,
+                    width: `${Math.max((item.value / max) * 100, 1)}%`,
                     backgroundColor: item.color,
                   }}
                 />
