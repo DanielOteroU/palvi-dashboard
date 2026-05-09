@@ -98,3 +98,49 @@ export function getKPIs(dataset: DatasetData) {
     },
   }
 }
+
+export function getAccumulationRate(
+    days: DayEntry[],
+    key: keyof DayEntry['metrics'],
+    weeks: number = 4
+  ): number | null {
+    const recentDays = days.slice(-weeks * 7)
+    if (recentDays.length < 7) return null
+  
+    const firstWeekAvg = average(getMetricValues(recentDays.slice(0, 7), key))
+    const lastWeekAvg = average(getMetricValues(recentDays.slice(-7), key))
+  
+    if (firstWeekAvg === null || lastWeekAvg === null) return null
+    return (lastWeekAvg - firstWeekAvg) / weeks
+  }
+  
+  export function projectValue(
+    days: DayEntry[],
+    key: keyof DayEntry['metrics'],
+    daysAhead: number = 30
+  ): number | null {
+    const ratePerWeek = getAccumulationRate(days, key)
+    if (ratePerWeek === null) return null
+  
+    const currentValue = average(getMetricValues(days.slice(-7), key))
+    if (currentValue === null) return null
+  
+    return currentValue + (ratePerWeek * (daysAhead / 7))
+  }
+  
+  export function getDeltaPct(
+    days: DayEntry[],
+    key: keyof DayEntry['metrics']
+  ): number | null {
+    const recent = average(getMetricValues(days.slice(-30), key))
+    const previous = average(getMetricValues(days.slice(-60, -30), key))
+    if (recent === null || previous === null || previous === 0) return null
+    return ((recent - previous) / previous) * 100
+  }
+  
+  export function getYearAgoValue(
+    days: DayEntry[],
+    key: keyof DayEntry['metrics']
+  ): number | null {
+    return average(getMetricValues(days.slice(0, 7), key))
+  }
