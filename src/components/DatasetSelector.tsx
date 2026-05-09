@@ -21,8 +21,8 @@ export default function DatasetSelector({ selected, onChange }: DatasetSelectorP
           onClick={() => onChange(key)}
           className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
             selected === key
-              ? 'bg-gray-900 text-white shadow-sm'
-              : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-400 hover:text-gray-700'
+              ? 'bg-white text-gray-900 shadow-lg'
+              : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 hover:text-white'
           }`}
         >
           {label}

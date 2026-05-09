@@ -247,12 +247,15 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
         </div>
 
         {alerts.length > 1 && (
-          <div className="border-t border-gray-100 px-8 py-4 flex items-center justify-between">
-            <span className="text-xs text-gray-400">También con tendencia negativa esta semana:</span>
-            <div className="flex items-center gap-2">
+          <div className="border-t border-gray-100 px-8 py-4">
+            <p className="text-xs text-gray-500 mb-2.5">
+            Otras métricas con tendencia negativa esta semana (vs 30 días previos):
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
               {alerts.slice(1).map(a => (
-                <div key={a.key} className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5">
+                <div key={a.key} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
                   <span className="text-xs font-medium text-gray-700">{a.label}</span>
+                  <span className="text-gray-300">·</span>
                   {a.deltaPct !== null && (
                     <span className="text-xs font-medium text-red-500">
                       {a.deltaPct > 0 ? '+' : ''}{a.deltaPct.toFixed(1)}%
