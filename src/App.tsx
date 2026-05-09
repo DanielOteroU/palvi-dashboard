@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { MetricsFile, DatasetKey } from './types/metrics'
 import { getKPIs } from './utils/dataUtils'
-import DatasetSelector from './components/DatasetSelector'
+import Header from './components/Header'
 import KPICard from './components/KPICard'
 import TrendChart from './components/TrendChart'
 import FunnelChart from './components/FunnelChart'
@@ -30,19 +30,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-6 py-8">
 
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Reporte ejecutivo</h1>
-            <p className="text-sm text-gray-400 mt-1">
-              {dataset.metadata.start_date} — {dataset.metadata.end_date}
-            </p>
-          </div>
-          <DatasetSelector selected={selected} onChange={setSelected} />
-        </div>
-        
+      <Header dataset={dataset} selected={selected} onChange={setSelected} />
+
+      <div className="max-w-6xl mx-auto px-6 pb-12">
+
         <FocusAlert dataset={dataset} />
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <KPICard {...kpis.winRate} />
           <KPICard {...kpis.responseTime} />
