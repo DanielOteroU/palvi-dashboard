@@ -23,6 +23,7 @@ interface AlertConfig {
   direction: 'higher_is_better' | 'lower_is_better'
   headline: string
   subtitle: string
+  definition: string
   critical: string
   actions: string[]
   primaryCTA: string
@@ -40,6 +41,7 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
       direction: 'lower_is_better',
       headline: 'El pipeline está acumulando deals sin movimiento.',
       subtitle: 'Los deals estancados están creciendo y aceleran su ritmo en las últimas semanas. Sin acción, el pipeline pierde capacidad de cierre.',
+      definition: 'Un deal estancado es una oportunidad de venta abierta con más de 60 días sin actividad — sin reuniones, sin avances, sin respuesta del cliente. Está en el limbo del pipeline.',
       critical: 'Los deals estancados están creciendo mientras el cierre baja. Cada semana que pasa, el equipo trabaja sobre un pipeline más viejo y menos convertible. Es el problema más urgente del negocio hoy.',
       actions: [
         'Filtrar el CRM por deals con más de 60 días sin actividad y revisar los 10 más antiguos uno a uno.',
@@ -55,6 +57,7 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
       direction: 'lower_is_better',
       headline: 'El equipo está tardando demasiado en contactar nuevos leads.',
       subtitle: 'El tiempo promedio de primera respuesta se deterioró en las últimas semanas. En B2B, cada minuto extra reduce significativamente la conversión.',
+      definition: 'Es el tiempo promedio en minutos que tarda el equipo de ventas desde que entra un lead nuevo hasta que lo contacta por primera vez. En B2B, este indicador correlaciona directamente con la tasa de conversión.',
       critical: 'Estudios muestran que responder en menos de 5 minutos puede multiplicar por 9 la probabilidad de conversión vs responder en 30 min. El equipo está muy por encima de ese umbral y empeorando.',
       actions: [
         'Revisar la cola de leads sin contactar de las últimas 24 horas y asignarlos ahora.',
@@ -70,6 +73,7 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
       direction: 'lower_is_better',
       headline: 'El volumen de tickets de soporte está aumentando sostenidamente.',
       subtitle: 'Los tickets diarios crecieron significativamente. Esto suele indicar un problema recurrente que no se está resolviendo de raíz.',
+      definition: 'Es el número de nuevos tickets de soporte abiertos por clientes existentes cada día. Un crecimiento sostenido suele indicar un problema técnico o de producto que se está repitiendo entre múltiples clientes.',
       critical: 'El crecimiento sostenido de tickets afecta directamente la satisfacción del cliente y la capacidad del equipo de soporte. Si no se identifica el origen, escala a churn.',
       actions: [
         'Revisar los tipos de tickets más frecuentes de las últimas 2 semanas y categorizarlos.',
@@ -85,6 +89,7 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
       direction: 'higher_is_better',
       headline: 'El cierre de deals está bajando esta semana.',
       subtitle: 'Los deals ganados diarios se redujeron vs el período anterior. Si la tendencia se mantiene, el resultado del trimestre está en riesgo.',
+      definition: 'Es el número de oportunidades de venta que se cerraron exitosamente como ventas confirmadas cada día. Es la métrica final del pipeline: lo que efectivamente se convirtió en ingresos.',
       critical: 'La caída en cierres puede tener múltiples causas: pipeline débil, equipo desmotivado, ciclo de venta más largo, o competencia. Hay que identificar la causa raíz antes de actuar.',
       actions: [
         'Revisar todos los deals en etapa final del pipeline con cierre proyectado este mes.',
@@ -166,48 +171,74 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
               <p className="text-sm text-gray-500 mt-3 leading-relaxed">
                 {top.subtitle}
               </p>
+              <div className="mt-4 flex items-start gap-2 bg-blue-50/50 border border-blue-100 rounded-lg px-3.5 py-2.5">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0 mt-0.5">
+              <circle cx="8" cy="8" r="6.5" stroke="#3b82f6" strokeWidth="1.2"/>
+              <path d="M8 5.5v3M8 10.5v.01" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <p className="text-xs text-blue-900/80 leading-relaxed">
+              <span className="font-semibold text-blue-900">¿Qué significa esto?</span> {top.definition}
+              </p>
+              </div>
             </div>
 
             <div className="flex flex-col items-end flex-shrink-0">
               <span className="text-5xl font-light text-red-500 tabular-nums leading-none">
                 {formattedValue}
               </span>
-              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.15em] mt-3">
-                {top.label} · {top.unit} · MEDIA 7D
+              <span className="text-sm font-medium text-gray-700 mt-3">
+                {top.label}
+              </span>
+              <span className="text-[11px] text-gray-400 mt-1">
+              Promedio últimos 7 días · en {top.unit}
               </span>
               {top.deltaPct !== null && (
-                <span className="text-xs font-medium text-red-500 mt-2">
-                  ↑ {top.deltaPct > 0 ? '+' : ''}{top.deltaPct.toFixed(1)}% vs 30d previos
+                <div className="flex items-center gap-1.5 mt-3 bg-red-50 border border-red-200 rounded-full px-2.5 py-1">
+                  <span className="text-xs font-semibold text-red-600">
+                  ↑ {top.deltaPct > 0 ? '+' : ''}{top.deltaPct.toFixed(1)}%
                 </span>
+                <span className="text-[11px] text-red-500">vs 30 días previos</span>
+                </div>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-6 py-5 border-t border-b border-gray-100 mb-6">
-            <div>
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Hoy</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {todayValue !== null ? Math.round(todayValue) : '—'} {top.unit}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-200 rounded-xl px-5 py-4">
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Hoy</p>
+              </div>
+              <p className="text-xl font-semibold text-slate-900">
+                {todayValue !== null ? Math.round(todayValue) : '—'} <span className="text-sm font-medium text-slate-500">{top.unit}</span>
               </p>
               {yearAgo !== null && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-slate-500 mt-1.5">
                   vs {Math.round(yearAgo)} hace 12 meses
                 </p>
               )}
             </div>
-            <div>
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Velocidad de cambio</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {formatRate(ratePerWeek)} / semana
+
+            <div className="bg-gradient-to-br from-red-50 to-red-100/40 border border-red-200/60 rounded-xl px-5 py-4">
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                <p className="text-[11px] font-semibold text-red-700 uppercase tracking-wider">Velocidad de cambio</p>
+              </div>
+              <p className="text-xl font-semibold text-slate-900">
+                {formatRate(ratePerWeek)} <span className="text-sm font-medium text-slate-500">/ semana</span>
               </p>
-              <p className="text-xs text-gray-500 mt-1">últimas 4 semanas</p>
+              <p className="text-xs text-slate-500 mt-1.5">últimas 4 semanas</p>
             </div>
-            <div>
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Proyección 30 días</p>
-              <p className="text-lg font-semibold text-gray-900">
-                ~{projection !== null ? Math.round(projection) : '—'} {top.unit}
+
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100/40 border border-amber-200/60 rounded-xl px-5 py-4">
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">Proyección 30 días</p>
+              </div>
+              <p className="text-xl font-semibold text-slate-900">
+                ~{projection !== null ? Math.round(projection) : '—'} <span className="text-sm font-medium text-slate-500">{top.unit}</span>
               </p>
-              <p className="text-xs text-gray-500 mt-1">si la tendencia continúa</p>
+              <p className="text-xs text-slate-500 mt-1.5">si la tendencia continúa</p>
             </div>
           </div>
 
@@ -249,7 +280,7 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
         {alerts.length > 1 && (
           <div className="border-t border-gray-100 px-8 py-4">
             <p className="text-xs text-gray-500 mb-2.5">
-            Otras métricas con tendencia negativa esta semana (vs 30 días previos):
+              Otras métricas con tendencia negativa esta semana (vs 30 días previos):
             </p>
             <div className="flex items-center gap-2 flex-wrap">
               {alerts.slice(1).map(a => (
