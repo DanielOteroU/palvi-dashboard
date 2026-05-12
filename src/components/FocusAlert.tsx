@@ -9,6 +9,7 @@ import {
   getAccumulationRate,
   projectValue,
   getYearAgoValue,
+  getFunnelData,
 } from '../utils/dataUtils'
 import FocusModal from './FocusModal'
 
@@ -118,11 +119,71 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
   })
 
   if (alerts.length === 0) {
+    const funnelData = getFunnelData(days)
+    const conversions = funnelData.slice(1).map((item, i) => {
+      const prev = funnelData[i].value
+      const rate = prev > 0 ? (item.value / prev) * 100 : 0
+      return { from: funnelData[i].name, rate }
+    })
+    const benchmarks: Record<string, number> = {
+      'Leads': 50,
+      'Calificados': 60,
+      'Deals': 35,
+    }
+    const significantSteps = conversions.filter(c => c.from !== 'Tráfico')
+    const structuralIssues = significantSteps.filter(
+      c => benchmarks[c.from] && c.rate < benchmarks[c.from] - 3
+    )
+    const hasStructuralIssue = structuralIssues.length > 0
+    const worstStructural = hasStructuralIssue
+      ? structuralIssues.reduce((worst, current) => {
+          const worstGap = benchmarks[worst.from] - worst.rate
+          const currentGap = benchmarks[current.from] - current.rate
+          return currentGap > worstGap ? current : worst
+        }, structuralIssues[0])
+      : null
+
+    if (hasStructuralIssue && worstStructural) {
+      const stepName = worstStructural.from === 'Deals'
+        ? 'el cierre de deals'
+        : worstStructural.from === 'Calificados'
+        ? 'el avance de leads calificados a deals'
+        : 'la calificación de leads'
+
+      return (
+        <div className="bg-white border border-amber-200 rounded-2xl shadow-sm mb-6 px-8 py-7 overflow-hidden relative">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-500" />
+          <div className="flex items-center gap-2 mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-[0.15em]">
+              Foco del día — {today}
+            </span>
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-900 leading-tight max-w-2xl">
+            Sin alertas urgentes, pero hay un problema estructural por resolver.
+          </h2>
+          <p className="text-sm text-gray-500 mt-3 max-w-3xl leading-relaxed">
+            Ninguna métrica muestra deterioro reciente — la operación está estable. Sin embargo, {stepName} sigue por debajo del benchmark esperado para B2B SaaS ({worstStructural.rate.toFixed(1)}% vs ~{benchmarks[worstStructural.from]}% esperado). No es urgente como un incendio, pero es donde más se puede ganar a mediano plazo.
+          </p>
+          <div className="mt-5 flex items-start gap-2 bg-amber-50/60 border border-amber-200/60 rounded-lg px-4 py-3">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0 mt-0.5 text-amber-700">
+              <path d="M8 1l7 13H1L8 1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+              <path d="M8 6v3.5M8 11v.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <p className="text-xs text-amber-900 leading-relaxed">
+              <span className="font-semibold">Revisar el funnel de conversión más abajo</span> — ahí está el detalle de qué paso del pipeline está perdiendo más oportunidades y por qué.
+            </p>
+          </div>
+        </div>
+      )
+    }
+
     return (
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm mb-6 px-8 py-7">
+      <div className="bg-white border border-emerald-200 rounded-2xl shadow-sm mb-6 px-8 py-7 overflow-hidden relative">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
         <div className="flex items-center gap-2 mb-4">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.15em]">
+          <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-[0.15em]">
             Foco del día — {today}
           </span>
         </div>
@@ -130,7 +191,7 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
           Todas las métricas están en rangos saludables.
         </h2>
         <p className="text-sm text-gray-500 mt-3 max-w-2xl leading-relaxed">
-          Ninguna métrica clave muestra deterioro vs los 30 días previos. Buen día para enfocarse en estrategia de largo plazo y revisar oportunidades de optimización.
+          Ninguna métrica clave muestra deterioro vs los 30 días previos y el funnel funciona dentro de los rangos esperados. Buen día para enfocarse en estrategia de largo plazo.
         </p>
       </div>
     )
@@ -172,13 +233,13 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
                 {top.subtitle}
               </p>
               <div className="mt-4 flex items-start gap-2 bg-blue-50/50 border border-blue-100 rounded-lg px-3.5 py-2.5">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0 mt-0.5">
-              <circle cx="8" cy="8" r="6.5" stroke="#3b82f6" strokeWidth="1.2"/>
-              <path d="M8 5.5v3M8 10.5v.01" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-              <p className="text-xs text-blue-900/80 leading-relaxed">
-              <span className="font-semibold text-blue-900">¿Qué significa esto?</span> {top.definition}
-              </p>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0 mt-0.5">
+                  <circle cx="8" cy="8" r="6.5" stroke="#3b82f6" strokeWidth="1.2"/>
+                  <path d="M8 5.5v3M8 10.5v.01" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <p className="text-xs text-blue-900/80 leading-relaxed">
+                  <span className="font-semibold text-blue-900">¿Qué significa esto?</span> {top.definition}
+                </p>
               </div>
             </div>
 
@@ -190,14 +251,14 @@ export default function FocusAlert({ dataset }: FocusAlertProps) {
                 {top.label}
               </span>
               <span className="text-[11px] text-gray-400 mt-1">
-              Promedio últimos 7 días · en {top.unit}
+                Promedio últimos 7 días · en {top.unit}
               </span>
               {top.deltaPct !== null && (
                 <div className="flex items-center gap-1.5 mt-3 bg-red-50 border border-red-200 rounded-full px-2.5 py-1">
                   <span className="text-xs font-semibold text-red-600">
-                  ↑ {top.deltaPct > 0 ? '+' : ''}{top.deltaPct.toFixed(1)}%
-                </span>
-                <span className="text-[11px] text-red-500">vs 30 días previos</span>
+                    ↑ {top.deltaPct > 0 ? '+' : ''}{top.deltaPct.toFixed(1)}%
+                  </span>
+                  <span className="text-[11px] text-red-500">vs 30 días previos</span>
                 </div>
               )}
             </div>
