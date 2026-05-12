@@ -1,42 +1,38 @@
 # Palvi Dashboard
 
-Reporte ejecutivo de métricas B2B SaaS. Construido con React + TypeScript.
-
-## Cómo correrlo localmente
+Reporte ejecutivo para B2B SaaS. React + TypeScript + Vite.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abrí http://localhost:5173 en el navegador.
-
-El archivo `public/metrics.json` ya está incluido en el repo.
+Abre http://localhost:5173. El JSON con los 4 datasets ya está en `public/metrics.json`.
 
 ## Decisiones técnicas
 
-**React + TypeScript + Vite** — stack base requerido. Vite por velocidad de setup y HMR instantáneo.
+**Apunté a comunicar, no a mostrar todo lo que el JSON permite.** El usuario es un Jefe de Ventas con 5 minutos. Su pregunta no es "qué pasó esta semana" sino "dónde pongo foco hoy". Esa pregunta es la que organiza el dashboard: arriba la respuesta (Foco del Día), abajo el detalle (KPIs, tendencias, funnel).
 
-**Recharts** — librería de charts construida sobre React. Elegida por su API declarativa y buena integración con TypeScript. Alternativa considerada: Chart.js, descartada por requerir manejo manual del DOM.
+**El Foco del Día detecta automáticamente la métrica más crítica de cada dataset** comparando ventanas de 30 días, usando el campo `direction` del JSON para saber si subir es bueno o malo. En Dataset A detecta deals estancados creciendo; en D, tiempo de respuesta degradándose. Sin esta lógica, el dashboard se vería igual en los 4 datasets — y eso era exactamente lo que había que evitar.
 
-**Tailwind CSS** — utilidades inline para iterar rápido en UI sin saltar entre archivos CSS. Permite mantener el estilo cerca del componente.
+**Cada métrica tiene definición y período visibles.** Un número solo no comunica. "175.6 deals estancados" sin contexto es ruido; con `Promedio últimos 7 días · vs ~96 hace 3 meses` es información accionable. Esto vale para las tarjetas KPI, el panel de foco y el modal.
 
-**Sin estado global (Redux/Zustand)** — la app tiene un único estado relevante: el dataset seleccionado. `useState` en `App.tsx` es suficiente y proporcional al problema.
+**El modal de análisis profundo aplica benchmarks B2B realistas** (win rate 35%, lead→qualified 50%) para detectar cuellos de botella en el funnel, en lugar de marcar el porcentaje más bajo. Sin benchmarks, el "cuello" siempre sería tráfico→lead (2-3%), lo cual es normal en B2B y por tanto inútil como alerta.
 
-**Sin backend** — el JSON se carga via `fetch('/metrics.json')` desde `public/`. Correcto para este scope: los datos son estáticos y no hay autenticación.
+**Stack:** React/Typescript(Base) + Vite por velocidad de setup. Recharts por API declarativa y buena integración con TypeScript. Tailwind para iterar UI sin saltar entre archivos. Sin Redux porque hay un único estado relevante (dataset seleccionado) — `useState` es proporcional al problema. El JSON se importa directo desde `public/` porque el scope no justifica backend.
 
-**Win rate calculado como suma acumulada** — `sum(deals_won) / sum(deals_won + deals_lost)` sobre una ventana de 30 días, no promedio de ratios diarios. Esto evita distorsiones en días con pocos deals.
+**Cálculos correctos donde importa:** win rate como `sum(won) / sum(won+lost)` sobre ventana, no promedio de ratios diarios. Nulls filtrados antes de promediar (`avg_response_time_min` puede ser null en días sin leads). Tendencias comparando promedios de ventanas, no valores puntuales.
 
-**Tendencia comparando ventanas de 30 días** — se compara el promedio de los últimos 30 días contra los 30 anteriores. Un delta > 3% se considera tendencia. El campo `direction` del dataset determina si esa tendencia es buena o mala.
-
-**Nulls manejados explícitamente** — métricas como `avg_response_time_min` pueden ser null (días sin leads). Las funciones de promedio filtran nulls antes de calcular.
+**Uso de IA:** Claude para iteración rápida de componentes y refinamiento visual. Las decisiones de qué mostrar, cómo estructurar la jerarquía del dashboard, qué constituye una alerta vs ruido, y los benchmarks B2B fueron mías. La IA aceleró la ejecución; no decidió el producto.
 
 ## Segunda iteración
 
-**Servicio de análisis en Python** — mover el cálculo de tendencias, detección de anomalías y proyecciones a un microservicio FastAPI. Python tiene mejor ecosistema para estadística (pandas, statsmodels). El frontend consumiría una API REST en lugar de procesar el JSON directamente.
+**Backend de análisis en Python.** Hoy todo el cálculo de tendencias, proyecciones y correlaciones vive en el frontend. Funciona para este scope pero no escala: si el dataset fuera 10x más grande o necesitara modelos estadísticos serios (regresión, detección de anomalías con prophet/statsmodels), un servicio FastAPI separado tendría más sentido. El frontend solo renderizaría.
 
-**Alertas inteligentes** — detectar automáticamente qué métrica empeoró más en las últimas 2 semanas y mostrarla destacada al abrir el dashboard. El Jefe de Ventas no debería tener que buscar el problema.
+**Alertas configurables por usuario.** Hoy el Foco del Día prioriza con lógica fija. En producción, distintos roles necesitarían distintos focos — un Director Comercial quiere ver pipeline, un VP de Customer Success quiere ver tickets. Permitir configurar qué métricas alimentan el algoritmo de "qué es el problema más urgente hoy".
 
-**Selector de período** — permitir comparar semana actual vs semana anterior, o mes vs mes anterior, en lugar de ventanas fijas de 7/30/90 días.
+**Comparación período sobre período flexible.** Hoy las comparaciones son ventanas fijas (7d, 30d, 90d). Permitir "esta semana vs la misma semana del mes anterior" o "este Q vs el Q anterior" para detectar estacionalidad real del negocio.
 
-**Tests** — cubrir las funciones de `dataUtils.ts` con Jest. Son funciones puras, fáciles de testear y críticas para la correctitud del reporte.
+**Tests para `dataUtils.ts`.** Son funciones puras críticas para la correctitud del reporte. Cubrirlas con Jest sería barato y de alto valor — un bug en `calcWinRate` o `getDeltaPct` corrompe todo el dashboard silenciosamente.
+
+**Accesibilidad y responsive.** El dashboard funciona en desktop pero no está optimizado para tablet/móvil ni cumple WCAG. Para un producto B2B real, ambos son no-negociables.
